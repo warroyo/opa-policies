@@ -84,6 +84,6 @@ test_lb_count_with_data {
             }
         }
     }
-    expect := "LoadBalancer Services are current at max capacity"
+    expect := "LoadBalancer Services are current at max capacity of 2"
     admission.deny[expect] with input as lb_request  with data.kubernetes.services as services
 }

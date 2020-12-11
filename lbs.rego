@@ -14,5 +14,5 @@ deny[msg] {
     input.request.object.spec.type = "LoadBalancer"
     lbcount := count(lbs)
     lbcount >= 2
-    msg = "LoadBalancer Services are current at max capacity"
+    msg = sprintf("LoadBalancer Services are current at max capacity of %v",[lbcount])
 }
