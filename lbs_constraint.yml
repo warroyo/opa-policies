@@ -11,7 +11,7 @@ spec:
         # Schema for the `parameters` field
         openAPIV3Schema:
           properties:
-            maxLbs:
+            maxlbs:
               type: string
               description: the maximum number of service type LoadBalancer allowed
   targets:
@@ -20,14 +20,14 @@ spec:
         package maxlbservice
         violation[{"msg": msg}] {
           input.review.kind.kind = "Service"
-          input.request.operation = "CREATE"
-          input.request.object.spec.type = "LoadBalancer"
+          input.review.kind.group == ""
+          input.review.object.spec.type = "LoadBalancer"
           lbcount := count(lbs)
-          lbcount >= to_number(input.parameters.maxLbs)
-          msg := sprintf("LoadBalancer Services are current at max capacity of %v",[lbcount])
+          lbcount >= to_number(input.parameters.maxlbs)
+          msg := sprintf("LoadBalancer Services are current at max capacity of %v",[input.parameters.maxlbs])
         }
         lbs[{"name": name}] { 
-          service := data.inventory.namespace[namespace][_].services
+          service := data.inventory.namespace[namespace][_]["Service"][sname]
           service.spec.type == "LoadBalancer"
           name := service
         }
