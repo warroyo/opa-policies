@@ -1,0 +1,33 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: max-lbservice
+spec:
+  crd:
+    spec:
+      names:
+        kind: max-lbservice
+      validation:
+        # Schema for the `parameters` field
+        openAPIV3Schema:
+          properties:
+            maxLbs:
+              type: string
+              description: the maximum number of service type LoadBalancer allowed
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package maxlbservice
+        violation[{"msg": msg}] {
+          input.review.kind.kind = "Service"
+          input.request.operation = "CREATE"
+          input.request.object.spec.type = "LoadBalancer"
+          lbcount := count(lbs)
+          lbcount >= to_number(input.parameters.maxLbs)
+          msg := sprintf("LoadBalancer Services are current at max capacity of %v",[lbcount])
+        }
+        lbs[{"name": name}] { 
+          service := data.inventory.namespace[namespace][_].services
+          service.spec.type == "LoadBalancer"
+          name := service
+        }
