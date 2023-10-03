@@ -8,7 +8,7 @@ spec:
     syncOnly:
       - group: ""
         version: "v1"
-        kind: "Namespace"
+        kind: "Service"
       - group: ""
         version: "v1"
-        kind: "Service"
+        kind: "Namespace"

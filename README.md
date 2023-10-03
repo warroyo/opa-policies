@@ -5,7 +5,6 @@ this repo has sample polcies/constraints for OPA and Gatekeeper. A Readme can be
 
 ## Repo Structure
 
-* constraints -  folders contain constraints for use with gatekeeper
-* policy - general opa policies
+* gatekeeper/library -  folders contain constraints for use with gatekeeper along with their testing suites and tmc implementation.
 
 

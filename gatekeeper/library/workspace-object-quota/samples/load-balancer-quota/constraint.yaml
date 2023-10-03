@@ -1,0 +1,21 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: workspace-object-quota
+metadata:
+  name: load-balancer-quota
+spec:
+  enforcementAction: deny
+  match:
+    kinds:
+    - apiGroups:
+      - ""
+      kinds:
+      - Service
+  parameters:
+    resources:
+    - apiVersion: v1
+      group: ""
+      kind: Service
+      quota: 2
+      type: LoadBalancer
+    workspaces:
+    - iris-blue

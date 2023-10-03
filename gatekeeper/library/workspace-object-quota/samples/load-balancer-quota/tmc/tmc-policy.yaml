@@ -1,0 +1,26 @@
+type:
+  kind: Policy
+  version: v1alpha1
+  package: vmware.tanzu.manage.v1alpha1.clustergroup.policy
+fullName:
+  clusterGroupName: warroyo
+  name: restrict-lb
+spec:
+  type: custom-policy
+  recipe: workspace-object-quota
+  recipeVersion: v1
+  input:
+    enforcementAction: deny
+    parameters:
+      resources:
+        - apiVersion: "v1"
+          group: ""
+          kind: "Service"
+          type: "LoadBalancer"
+          quota: 1
+      workspaces: ["group-0001"]
+    targetKubernetesResources:
+      - apiGroups:
+          - ""
+        kinds:
+          - "Service"

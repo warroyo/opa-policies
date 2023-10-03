@@ -1,0 +1,23 @@
+kind: Suite
+apiVersion: test.gatekeeper.sh/v1alpha1
+metadata:
+  name: workspace-object-quota
+tests:
+- name: load-balancer-quota
+  template: template.yaml
+  constraint: samples/load-balancer-quota/constraint.yaml
+  cases:
+  - name: example-disallowed
+    object: samples/load-balancer-quota/example.yaml
+    inventory:
+    - samples/load-balancer-quota/example_inventory_disallowed.yaml
+    - samples/load-balancer-quota/example_inventory_ns.yaml
+    assertions:
+    - violations: yes
+  - name: example-allowed
+    object: samples/load-balancer-quota/example.yaml
+    inventory:
+    - samples/load-balancer-quota/example_inventory_allowed.yaml
+    - samples/load-balancer-quota/example_inventory_ns.yaml
+    assertions:
+    - violations: no

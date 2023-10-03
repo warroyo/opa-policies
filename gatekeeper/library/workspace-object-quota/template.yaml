@@ -1,0 +1,122 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: workspace-object-quota
+spec:
+  crd:
+    spec:
+      names:
+        kind: workspace-object-quota
+      validation:
+        # Schema for the `parameters` field
+        openAPIV3Schema:
+          properties:
+            workspaces:
+              type: array
+              description: the name of the workspaces to set the quota on
+              items:
+                type: string
+            resources:
+              type: array
+              items:
+                type: object
+                properties:
+                  kind:
+                    type: string
+                    description: the kind for the k8s resource to set a quota on
+                  type:
+                    type: string
+                    description: the type for the k8s resource to set a quota on 
+                  group:
+                    type: string
+                    description: the API group for the k8s resource to set a quota on
+                  apiVersion:
+                    type: string
+                    description: the API version for the k8s resource to set a quota on
+                  quota:
+                    type: integer
+                    description: the number to limit the resources on
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+         package workspaceobjectquota
+          import future.keywords.in
+
+          violation[{"msg": msg}] {
+            #get matching workspace
+              workspace := matching_workspace(input.parameters.workspaces,input.review.namespace)
+              count(workspace) > 0
+            # make sure we are matching only on specific resource and return the match
+              matched_resource := resource_match(input.parameters.resources)
+              count(matched_resource) > 0
+              # filter the namespaces by workspace label
+              filteredns := namespaces(workspace[0])
+              # get the existing resources that match
+              existing := existing_resources(filteredns) 
+              # print(existing)
+              object_count = count(existing)
+              object_count >= to_number(matched_resource[0].spec.quota)
+              msg := sprintf("quota for %v is current at max capacity of %v",[input.review.kind.kind,matched_resource[0].spec.quota])
+          }
+
+            
+          #This is the function for checking if the input resource matches
+          # out list of evaluated resources 
+          resource_match(resources) := matches {
+            
+            resource := resources[_]
+              input.review.kind.kind == resource.kind
+              input.review.kind.group == resource.group
+              input.review.kind.version == resource.apiVersion
+              type_exists := contains_type(resource)
+              #to handle the re-use of the function below we need to make the input param have a fake spec block
+              fake_spec := {"spec": resource } 
+              matches := return_resource_match(type_exists,fake_spec)
+              print(matches)
+          }
+
+          #extra validation to see if it matches the type 
+          return_resource_match(type_exists,resource) := match {
+            type_exists[0] == "yes"
+              print("type_exists")
+              match := [x | x := resource; input.review.object.spec["type"] == resource.spec.type]
+
+          }
+
+
+          #if it does not have a type just return the matches resource
+          return_resource_match(type_exists,resource) := match {
+            type_exists == []
+              print("type not exists")
+              match := resource
+          }
+
+
+          #checks if the object has a type and returns a value based on that
+          contains_type(input_object) := exists {
+            exists := [x | x := "yes"; input_object["type"] ]
+            
+          }
+
+          # gets existing resources in the matching NS and also filters for type matching
+          existing_resources(namespaces):= resource_list { 
+              
+              type_exists := contains_type(input.review.object.spec)
+              resource_list := {x |
+                some ns in namespaces
+                resource := data.inventory.namespace[ns.metadata.name][input.review.kind.version][input.review.kind.kind][_]
+                x := return_resource_match(type_exists,resource)
+
+              }
+              
+
+          }
+
+          matching_workspace(workspaces,namespace) := workspace{
+            workspace := [x | x:= workspaces[_]; data.inventory.cluster.v1.Namespace[namespace].metadata.labels["tmc.cloud.vmware.com/workspace"] == x]
+          }
+
+          #gets the namespaces based on the workspace name
+          namespaces(workspace) := ns_list {
+            ns_list := [x | x := data.inventory.cluster.v1.Namespace[_]; x.metadata.labels["tmc.cloud.vmware.com/workspace"] == workspace]
+          }

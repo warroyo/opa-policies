@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: iris-blue-app-service-1
+  namespace: iris-blue-apps
+spec:
+  selector:
+    app: example
+  ports:
+    - port: 8765
+      targetPort: 9376
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: iris-blue-app-service-2
+  namespace: iris-blue-apps
+spec:
+  selector:
+    app: example
+  ports:
+    - port: 8765
+      targetPort: 9376
+  type: LoadBalancer
