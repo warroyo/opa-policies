@@ -1,0 +1,14 @@
+apiVersion: mutations.gatekeeper.sh/v1
+kind: AssignMetadata
+metadata:
+  name: ns-priv-psa
+spec:
+  match:
+    scope: Cluster
+    kinds:
+    - apiGroups: [""]
+      kinds: ["Namespace"]
+  location: metadata.labels."pod-security.kubernetes.io/enforce"
+  parameters:
+    assign:
+      value: privileged
