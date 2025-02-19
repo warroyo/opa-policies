@@ -1,0 +1,29 @@
+kind: Suite
+apiVersion: test.gatekeeper.sh/v1alpha1
+metadata:
+  name: workspace-object-quota
+tests:
+- name: flux-enforce-permissions
+  template: template.yaml
+  constraint: samples/flux-enforce-sa/constraint.yaml
+  cases:
+  - name: example-kustomiozation-deny
+    object: samples/flux-enforce-sa/example.yaml
+    assertions:
+    - violations: yes
+  - name: example-kustomiozation-allow
+    object: samples/flux-enforce-sa/example_kust_allow.yaml
+    assertions:
+    - violations: no
+  - name: example-helm-allow
+    object: samples/flux-enforce-sa/example_helm_allow.yaml
+    assertions:
+    - violations: no
+  - name: example-helm-deny
+    object: samples/flux-enforce-sa/example_helm_deny.yaml
+    assertions:
+    - violations: yes
+  - name: example-kustomiozation-kubeconfig
+    object: samples/flux-enforce-sa/example_kust_kubeconfig.yaml
+    assertions:
+    - violations: no

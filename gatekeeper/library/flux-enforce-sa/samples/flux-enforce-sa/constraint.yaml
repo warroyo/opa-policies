@@ -1,0 +1,17 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: fluxenforcesa
+metadata:
+  name: fluxenforcesa
+spec:
+  enforcementAction: deny
+  match:
+    kinds:
+    - apiGroups:
+      - kustomize.toolkit.fluxcd.io
+      kinds:
+      - Kustomization
+    - apiGroups:
+      - helm.toolkit.fluxcd.io
+      kinds:
+      - HelmRelease
+  parameters: {}
